@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { Auth } from "aws-amplify";
-import { Link } from "react-router-dom";
+import { Link, withRouter } from "react-router-dom";
 import { Nav, Navbar, NavItem } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
 import "./App.css";
@@ -41,6 +41,9 @@ import Routes from "./Routes";
       await Auth.signOut();
 
       this.userHasAuthenticated(false);
+
+      this.props.history.push("/login");
+
     }
 
 
@@ -84,4 +87,4 @@ import Routes from "./Routes";
 
   }
 
-export default App;
+  export default withRouter(App);
