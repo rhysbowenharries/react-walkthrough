@@ -4,6 +4,8 @@ import { FormGroup, FormControl, ControlLabel } from "react-bootstrap";
 import LoaderButton from "../components/LoaderButton";
 import config from "../config";
 import "./Notes.css";
+import { s3Upload } from "../libs/awsLib";
+
 
 
 export default class Notes extends Component {
@@ -47,24 +49,32 @@ export default class Notes extends Component {
   }
 
   validateForm() {
-  return this.state.content.length > 0;
-}
+    return this.state.content.length > 0;
+  }
 
-formatFilename(str) {
-  return str.replace(/^\w+-/, "");
-}
+  formatFilename(str) {
+    return str.replace(/^\w+-/, "");
+  }
 
-handleChange = event => {
-  this.setState({
-    [event.target.id]: event.target.value
+  handleChange = event => {
+    this.setState({
+      [event.target.id]: event.target.value
+    });
+  }
+
+  handleFileChange = event => {
+    this.file = event.target.files[0];
+  }
+
+  saveNote(note) {
+  return API.put("notes", `/notes/${this.props.match.params.id}`, {
+    body: note
   });
 }
 
-handleFileChange = event => {
-  this.file = event.target.files[0];
-}
-
 handleSubmit = async event => {
+  let attachment;
+
   event.preventDefault();
 
   if (this.file && this.file.size > config.MAX_ATTACHMENT_SIZE) {
@@ -73,21 +83,38 @@ handleSubmit = async event => {
   }
 
   this.setState({ isLoading: true });
-}
 
-handleDelete = async event => {
-  event.preventDefault();
+  try {
+    if (this.file) {
+      attachment = await s3Upload(this.file);
+    }
 
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this note?"
-  );
-
-  if (!confirmed) {
-    return;
+    await this.saveNote({
+      content: this.state.content,
+      attachment: attachment || this.state.note.attachment
+    });
+    this.props.history.push("/");
+  } catch (e) {
+    alert(e);
+    this.setState({ isLoading: false });
   }
-
-  this.setState({ isDeleting: true });
 }
+
+
+
+  handleDelete = async event => {
+    event.preventDefault();
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this note?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.setState({ isDeleting: true });
+  }
 
   render() {
     return (
