@@ -3,6 +3,8 @@ import "./Home.css";
 import { API } from "aws-amplify";
 import { PageHeader, ListGroup, ListGroupItem } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
+import Routes from "../Routes";
+
 
 export default class Home extends Component {
   constructor(props) {

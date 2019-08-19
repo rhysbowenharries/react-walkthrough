@@ -67,40 +67,44 @@ export default class Notes extends Component {
   }
 
   saveNote(note) {
-  return API.put("notes", `/notes/${this.props.match.params.id}`, {
-    body: note
-  });
-}
-
-handleSubmit = async event => {
-  let attachment;
-
-  event.preventDefault();
-
-  if (this.file && this.file.size > config.MAX_ATTACHMENT_SIZE) {
-    alert(`Please pick a file smaller than ${config.MAX_ATTACHMENT_SIZE/1000000} MB.`);
-    return;
+    return API.put("notes", `/notes/${this.props.match.params.id}`, {
+      body: note
+    });
   }
 
-  this.setState({ isLoading: true });
+  handleSubmit = async event => {
+    let attachment;
 
-  try {
-    if (this.file) {
-      attachment = await s3Upload(this.file);
+    event.preventDefault();
+
+    if (this.file && this.file.size > config.MAX_ATTACHMENT_SIZE) {
+      alert(`Please pick a file smaller than ${config.MAX_ATTACHMENT_SIZE/1000000} MB.`);
+      return;
     }
 
-    await this.saveNote({
-      content: this.state.content,
-      attachment: attachment || this.state.note.attachment
-    });
-    this.props.history.push("/");
-  } catch (e) {
-    alert(e);
-    this.setState({ isLoading: false });
+    this.setState({ isLoading: true });
+
+    try {
+      if (this.file) {
+        attachment = await s3Upload(this.file);
+      }
+
+      await this.saveNote({
+        content: this.state.content,
+        attachment: attachment || this.state.note.attachment
+      });
+      this.props.history.push("/");
+    } catch (e) {
+      alert(e);
+      this.setState({ isLoading: false });
+    }
   }
-}
 
 
+
+  deleteNote() {
+    return API.del("notes", `/notes/${this.props.match.params.id}`);
+  }
 
   handleDelete = async event => {
     event.preventDefault();
@@ -114,7 +118,16 @@ handleSubmit = async event => {
     }
 
     this.setState({ isDeleting: true });
+
+    try {
+      await this.deleteNote();
+      this.props.history.push("/");
+    } catch (e) {
+      alert(e);
+      this.setState({ isDeleting: false });
+    }
   }
+
 
   render() {
     return (
